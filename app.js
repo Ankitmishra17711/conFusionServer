@@ -3,14 +3,22 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+const http= require('http');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var disheRouter=  require('./routes/dishRouter');
 var promoRouter=  require('./routes/promoRouter');
 var leaderRouter=  require('./routes/leaderRouter');
 
+const port = 3001;
+const hostname='localhost';
 
+const mongoose = require ('mongoose');
+
+const Dishes = require('./models/dishes');
+
+const url= 'mongodb://localhost:27017/conFusion';
+const connect = mongoose.connect(url);
 
 var app = express();
 
@@ -44,6 +52,16 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
+});
+
+connect.then((db)=>{
+  console.log('Connected correctly to server');
+},(err) => {console.log(err);   });
+
+const server =http.createServer(app);
+
+server.listen(port ,hostname,()=>{
+  console.log(`Server runnning at http://${hostname}:${port}`)  
 });
 
 module.exports = app;
