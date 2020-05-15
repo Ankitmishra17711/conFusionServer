@@ -1,27 +1,36 @@
 const express=require('express');
 const bodyParser =require('body-parser');//2
+const mongoose = require('mongoose');
+
+const Promotions = require ('../models/promotions');
 
 const promoRouter =express.Router();
 promoRouter.use(bodyParser.json());
 
 promoRouter.route('/')
 
-//.all( (req,res,next) =>{
-  //res.statusCode=200;
-  //res.setHeader('Content-type','text/plain');
-  //next();
-//})
+.get((req,res,next) => {
+  Promotions.find({})
+  .then((promotions) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(promotions);
+  }, (err) => next(err))
+  .catch((err) => next(err));
+})
 
-
-.get((req,res,next)=>{
-  res.end('will send all the promotions to you!');
-  })
   
-  .post((req,res,next)=>{ // post will add info in rquest body in the form of a json string which contain a name and description
-    console.log(req.body);
-    res.end('will add the promotions :' + req.body.name +
-    'with details:'+ req.body.description);
-  })
+.post((req, res, next) => {
+  Promotions.create(req.body)
+  .then((promotion) => {
+      console.log('promotion Created ', promotion);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(promotion);
+  }, (err) => next(err))
+  .catch((err) => next(err));
+})
+
   
   .put((req,res,next)=>{ 
     res.statusCode=403; // 403 means operation is not supported
@@ -29,9 +38,15 @@ promoRouter.route('/')
   })
   
   
-  .delete((req,res,next)=>{
-    res.end('Deleting all the promotions to you !');
-    });
+  .delete((req, res, next) => {
+    Promotions.remove({})
+    .then((resp) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(resp);
+    }, (err) => next(err))
+    .catch((err) => next(err));    
+}); 
 
 
 
@@ -39,12 +54,15 @@ promoRouter.route('/')
 
     promoRouter.route('/:promoId')
 
-    .get((req, res, next)=> {
-
-      console.log('hi ankit');
-      res.end('will send details of the promotions'   //.get(function (req, res, next) 
-      +req.params.promoId +'to you');
-      })
+    .get((req,res,next) => {
+      Promotions.findById(req.params.promoId)
+      .then((promotion) => {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.json( promotion);
+      }, (err) => next(err))
+      .catch((err) => next(err));
+  })
 
       
       
@@ -56,17 +74,27 @@ promoRouter.route('/')
      
       
       
-      .put((req,res,next)=>{ 
-        
-        res.write('updating the promotions:'+req.params.promoId +'\n');
-        res.end('will update the promotions :'+req.body.name+
-        'with details:' +req.body.description);
-      })
+      .put((req, res, next) => {
+        Promotions.findByIdAndUpdate(req.params.promoId, {
+            $set: req.body
+        }, { new: true })
+        .then((promotion ) => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(promotion);
+        }, (err) => next(err))
+        .catch((err) => next(err));
+    })
       
-      
-      .delete((req,res,next)=>{
-        res.end('Deleting promotions :'+req.params.promoId);
-        });
+    delete((req, res, next) => {
+      Promotions.findByIdAndRemove(req.params.promoId)
+      .then((resp) => {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.json(resp);
+      }, (err) => next(err))
+      .catch((err) => next(err));
+  });
   
 
 
