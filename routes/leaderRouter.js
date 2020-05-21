@@ -1,38 +1,57 @@
 const express=require('express');
 const bodyParser =require('body-parser'); /// 1
-
 const leaderRouter =express.Router();
+
+
+const Leaders = require('../models/leaders');
+
+
 leaderRouter.use(bodyParser.json());
 
 leaderRouter.route('/')
 
-.all( (req,res,next) =>{
- res.statusCode=200;
- res.setHeader('Content-type','text/plain');
-  next();
+
+
+
+.get((req,res,next) => {
+  Leaders.find({})
+  .then((leaders) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(leaders);
+  }, (err) => next(err))
+  .catch((err) => next(err));
 })
+  
+ 
+.post((req, res, next) => {     // post will add info in rquest body in the form of a json string which contain a name and description
+  Leaders.create(req.body)
+  .then((leader) => {
+      console.log('Leader Created ', leader);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(leader);
+  }, (err) => next(err))
+  .catch((err) => next(err));
+}) 
+  
 
 
-.get((req,res,next)=>{
-  
-  res.end('will send all the leaders to you!');
-  })
-  
-  .post((req,res,next)=>{ // post will add info in rquest body in the form of a json string which contain a name and description
-    console.log(req.body);
-    res.end('will add the leaders :' + req.body.name +
-    'with details:'+ req.body.description);
-  })
   
   .put((req,res,next)=>{ 
     res.statusCode=403; // 403 means operation is not supported
     res.end('Put operation not supported on /leaders');
   })
   
-  .delete((req,res,next)=>{
-    res.end('Deleting all the leaders to you !');
-    });
-
+  .delete((req, res, next) => {
+    Leaders.remove({})
+    .then((resp) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(resp);
+    }, (err) => next(err))
+    .catch((err) => next(err));    
+});
 
 
 
@@ -40,11 +59,15 @@ leaderRouter.route('/')
 
     leaderRouter.route('/:leaderId')
 
-    .get((req, res, next)=> {
-     // console.log('hii ankit mishra');
-      res.end('will send details of the leader'   //.get(function (req, res, next) 
-      +req.params.leaderId +'to you');
-      })
+    .get((req,res,next) => {
+      Leaders.findById(req.params.leaderId  )
+      .then((leader) => {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.json( leader);
+      }, (err) => next(err))
+      .catch((err) => next(err));
+  })
 
       
       
@@ -56,16 +79,28 @@ leaderRouter.route('/')
      
       
       
-      .put((req,res,next)=>{ 
-        res.write('updating the leader:'+req.params.leaderId +'\n');
-        res.end('will update the leader :'+req.body.name+
-        'with details:' +req.body.description);
-      })
+    
+      .put((req, res, next) => {
+        Leaders.findByIdAndUpdate(req.params.leaderId, {
+            $set: req.body
+        }, { new: true })
+        .then((leader ) => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(leader);
+        }, (err) => next(err))
+        .catch((err) => next(err));
+    })
       
       
-      .delete((req,res,next)=>{
-        res.end('Deleting dish :'+req.params.lederId);
-        });
-  
+    .delete((req, res, next) => {
+      Leaders.findByIdAndRemove(req.params.leaderId)
+      .then((resp) => {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.json(resp);
+      }, (err) => next(err))
+      .catch((err) => next(err));
+  });
 
  module.exports = leaderRouter;

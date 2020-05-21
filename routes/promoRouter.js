@@ -86,7 +86,7 @@ promoRouter.route('/')
         .catch((err) => next(err));
     })
       
-    delete((req, res, next) => {
+    .delete((req, res, next) => {
       Promotions.findByIdAndRemove(req.params.promoId)
       .then((resp) => {
           res.statusCode = 200;

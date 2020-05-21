@@ -9,6 +9,7 @@ name: {
     required: true,
     unique: true
 },
+
 image : {
     type: String,
     required: true,
