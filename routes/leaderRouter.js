@@ -1,6 +1,7 @@
 const express=require('express');
 const bodyParser =require('body-parser'); /// 1
 const leaderRouter =express.Router();
+const authenticate = require('../authenticate');
 
 
 const Leaders = require('../models/leaders');
@@ -24,7 +25,7 @@ leaderRouter.route('/')
 })
   
  
-.post((req, res, next) => {     // post will add info in rquest body in the form of a json string which contain a name and description
+.post(authenticate.verifyUser,(req, res, next) => {     // post will add info in rquest body in the form of a json string which contain a name and description
   Leaders.create(req.body)
   .then((leader) => {
       console.log('Leader Created ', leader);
@@ -38,12 +39,12 @@ leaderRouter.route('/')
 
 
   
-  .put((req,res,next)=>{ 
+  .put(authenticate.verifyUser,(req,res,next)=>{ 
     res.statusCode=403; // 403 means operation is not supported
     res.end('Put operation not supported on /leaders');
   })
   
-  .delete((req, res, next) => {
+  .delete(authenticate.verifyUser,(req, res, next) => {
     Leaders.remove({})
     .then((resp) => {
         res.statusCode = 200;
@@ -71,7 +72,7 @@ leaderRouter.route('/')
 
       
       
-      .post((req,res, next)=> { // post will add info in rquest body in the form of a json string which contain a name and description
+      .post(authenticate.verifyUser,(req,res, next)=> { // post will add info in rquest body in the form of a json string which contain a name and description
         res.statusCode=403; // 403 means operation is not supported
         res.end('POST operation not supported on /leaders/'
         +req.params.leaderId);
@@ -80,7 +81,7 @@ leaderRouter.route('/')
       
       
     
-      .put((req, res, next) => {
+      .put(authenticate.verifyUser,(req, res, next) => {
         Leaders.findByIdAndUpdate(req.params.leaderId, {
             $set: req.body
         }, { new: true })
@@ -93,7 +94,7 @@ leaderRouter.route('/')
     })
       
       
-    .delete((req, res, next) => {
+    .delete(authenticate.verifyUser,(req, res, next) => {
       Leaders.findByIdAndRemove(req.params.leaderId)
       .then((resp) => {
           res.statusCode = 200;
