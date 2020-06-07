@@ -4,6 +4,7 @@ var User = require('./models/user');
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
 var jwt = require('jsonwebtoken');
+var FacebookTokenStratrgy = require('passport-facebook-token');
 
 
 
@@ -42,25 +43,7 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
         });
     }));
 
-    exports.verifyUser = function (req, res, next) {
-        var token = req.body.token || req.query.token || req.headers['x-access-token'];
-        if (token) {
-            jwt.verify(token, config.secretKey, function (err, decoded) {
-                if (err) {
-                    var err = new Error('You are not authenticated!');
-                    err.status = 401;
-                    return next(err);
-                } else {
-                    req.decoded = decoded;
-                    next();
-                }
-            });
-        } else {
-            var err = new Error('No token provided!');
-            err.status = 403;
-            return next(err);
-        }
-    };
+    exports.verifyUser =  passport.authenticate('jwt', {session: false});
     
     exports.verifyAdmin = function (req, res, next) {
         if (req.user.admin) {
@@ -71,6 +54,31 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
             return next(err);
         }
     };
-    exports.verifyUser = passport.authenticate('jwt', {session: false});
-
-
+    
+    exports.facebookPassport = passport.use(new 
+        FacebookTokenStratrgy({
+        clientID: config.facebook.clientId,
+        clientSecret: config.facebook.clientSecret
+    }, (accessToken, refreshToken, profile, done) => {
+        User.findOne({facebookId: profile.id}, (err, user) => {
+            if (err) {
+                return done(err, false);
+            }
+            if (!err && user !== null) {
+                return done(null, user);
+            }
+            else {
+                user = new User({ username: profile.displayName });
+                user.facebookId = profile.id;
+                user.firstname = profile.name.givenName;
+                user.lastname = profile.name.familyName;
+                user.save((err, user) => {
+                    if (err)
+                        return done(err, false);
+                    else
+                        return done(null, user);
+                })
+            }
+        });
+    }
+));
