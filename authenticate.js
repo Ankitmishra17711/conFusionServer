@@ -71,4 +71,6 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
             return next(err);
         }
     };
+    exports.verifyUser = passport.authenticate('jwt', {session: false});
+
 
